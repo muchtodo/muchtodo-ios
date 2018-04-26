@@ -1,0 +1,15 @@
+PODS:
+  - SnapKit (4.0.0)
+  - TableKit (2.6.0)
+
+DEPENDENCIES:
+  - SnapKit (~> 4.0)
+  - TableKit (~> 2.6)
+
+SPEC CHECKSUMS:
+  SnapKit: a42d492c16e80209130a3379f73596c3454b7694
+  TableKit: 61880e4c13ac0ba396a308fcb1ae48f6dec8b458
+
+PODFILE CHECKSUM: f71df5383582a03c586168ec96b14753fb5ce9cd
+
+COCOAPODS: 1.4.0
