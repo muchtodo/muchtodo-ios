@@ -19,7 +19,7 @@ class MainController: UIViewController {
     init() {
         
         self.tableDirector = TableDirector(tableView: self.tableView)
-        self.tableDirector.tableView?.separatorStyle = .none
+//        self.tableDirector.tableView?.separatorStyle = .none
         super.init(nibName: nil, bundle: nil)
         self.view.addSubview(self.tableView)
         self.tableView.snp.makeConstraints { (make) in
@@ -61,8 +61,7 @@ class TaskCell: UITableViewCell, ConfigurableCell {
     }
     
     func configure(with task: Task) {
-        self.taskCellView = TaskCellView(withTask: task)
-        contentView.addSubview(self.taskCellView!)
+        self.taskCellView = TaskCellView(withTask: task, inContentView: self.contentView)
         separatorInset = .zero
     }
 }
@@ -76,42 +75,74 @@ class TaskCellView: UIView {
     let taskName = UILabel()
     let dateLabel = UILabel()
     
-    init(withTask task: Task) {
+    init(withTask task: Task, inContentView contentView: UIView) {
+        print("Main Controller init - task: \(task.name)")
         self.task = task
         super.init(frame: CGRect.zero)
         
         let hStack = UIStackView(frame: CGRect.zero)
         hStack.axis = .horizontal
+        hStack.distribution = .fill
+        hStack.alignment = .top
+        hStack.spacing = 10
         
         if task.completable {
             box.setImage(UIImage(named: "taskbox")?.withRenderingMode(.alwaysTemplate), for: .normal)
             box.tintColor = UIColor(red:0.32, green:0.40, blue:0.56, alpha:1.0)
             box.addTarget(self, action: #selector(TaskCellView.buttonPressed), for: .touchUpInside)
+            box.snp.makeConstraints { (make) in
+                make.width.height.equalTo(15)
+            }
             hStack.addArrangedSubview(box)
         }
         
         
-        taskName.font = UIFont(name: "FiraSans-Regular", size: 16.0)
+//        taskName.font = UIFont(name: "FiraSans-Regular", size: 15.0)
+        taskName.font = UIFont.systemFont(ofSize: 15.0)
         taskName.text = task.name
         taskName.textColor = UIColor(red:0.32, green:0.40, blue:0.56, alpha:1.0)
         if task.parent == nil {
-            taskName.font = UIFont(name: "FiraSans-Bold", size: 19.0)
+//            taskName.font = UIFont(name: "FiraSans-Bold", size: 16.0)
+            taskName.font = UIFont.boldSystemFont(ofSize: 16.0)
         }
-        hStack.addArrangedSubview(taskName)
+        
+        let vStack = UIStackView(arrangedSubviews: [taskName])
+        vStack.axis = .vertical
+        vStack.distribution = .equalSpacing
+        vStack.alignment = .leading
+        vStack.spacing = 10
+        
+        hStack.addArrangedSubview(vStack)
         self.addSubview(hStack)
+
+        hStack.snp.makeConstraints { (make) in
+            make.leading.trailing.equalToSuperview()
+        }
+        
+        self.snp.makeConstraints { (make) in
+            make.height.equalTo(hStack).offset(10)
+            make.centerY.equalTo(hStack)
+        }
         
         if let due = task.dueDate {
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
             let dateString = dateFormatter.string(from: due)
             dateLabel.text = dateString
-            dateLabel.textColor = UIColor(red:0.20, green:0.23, blue:0.34, alpha:1.0)
-            dateLabel.font = UIFont(name: "FiraSans-Regular", size: 12.0)
+//            dateLabel.textColor = UIColor(red:0.20, green:0.23, blue:0.34, alpha:1.0)
+            dateLabel.textColor = UIColor.lightGray
+//            dateLabel.font = UIFont(name: "FiraSans-Regular", size: 12.0)
+            dateLabel.font = UIFont.systemFont(ofSize: 12.0)
             
-            let vStack = UIStackView(arrangedSubviews: [hStack, dateLabel])
-            vStack.axis = .vertical
-            hStack.removeFromSuperview()
-            self.addSubview(vStack)
+            vStack.addArrangedSubview(dateLabel)
+        }
+        
+        contentView.addSubview(self)
+        self.snp.makeConstraints { (make) in
+            make.top.equalToSuperview().offset(8)
+            make.bottom.equalToSuperview().offset(-8)
+            make.leading.equalToSuperview().offset(20)
+            make.trailing.equalToSuperview().offset(-20)
         }
     }
     

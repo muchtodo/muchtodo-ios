@@ -1,15 +1,18 @@
 PODS:
+  - Reveal-SDK (11)
   - SnapKit (4.0.0)
   - TableKit (2.6.0)
 
 DEPENDENCIES:
+  - Reveal-SDK (~> 11)
   - SnapKit (~> 4.0)
   - TableKit (~> 2.6)
 
 SPEC CHECKSUMS:
+  Reveal-SDK: 7fa13d04bb55db61ff2342a990cf731d5159361d
   SnapKit: a42d492c16e80209130a3379f73596c3454b7694
   TableKit: 61880e4c13ac0ba396a308fcb1ae48f6dec8b458
 
-PODFILE CHECKSUM: f71df5383582a03c586168ec96b14753fb5ce9cd
+PODFILE CHECKSUM: afeca6360ffd2c7a0c88d4cd3709ce0ff484018e
 
 COCOAPODS: 1.4.0
