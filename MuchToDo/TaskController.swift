@@ -10,15 +10,16 @@ import UIKit
 import TableKit
 import SnapKit
 import PinLayout
+import RealmSwift
 
 
 class TaskController: UIViewController {
-    let tasks: [Task]
+    let tasks: Results<Task>
     var tableView = UITableView()
     var tableDirector: TableDirector!
     var newTaskContainer = UIView()
     
-    init(tasks: [Task]) {
+    init(tasks: Results<Task>) {
         print("MainController init")
         self.tasks = tasks
         self.tableDirector = TableDirector(tableView: self.tableView)
@@ -46,6 +47,7 @@ class TaskController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
     override func viewDidLoad() {
         print("MainController VDL")
         super.viewDidLoad()
@@ -57,13 +59,13 @@ class TaskController: UIViewController {
         
         self.tableView.separatorStyle = .none
         self.tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
-        
         loadCells()
     }
     
+    
     func loadCells() {
         print("MainController loadCells")
-        let rows = self.tasks.map({ TableRow<TaskCell>(item: $0) })
+        let rows: [TableRow<TaskCell>] = self.tasks.map({ TableRow<TaskCell>(item: $0) })
         let section = TableSection(rows: rows)
         section.headerHeight = CGFloat.leastNormalMagnitude
         section.footerHeight = CGFloat.leastNormalMagnitude

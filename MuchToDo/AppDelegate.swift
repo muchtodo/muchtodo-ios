@@ -7,6 +7,11 @@
 //
 
 import UIKit
+import RealmSwift
+
+
+public var realm: Realm?
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,10 +21,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
+        setUpRealm()
+        
         let controller = ListController()
         let nav = UINavigationController(rootViewController: controller)
         nav.navigationBar.prefersLargeTitles = true
-//        nav.navigationBar.barTintColor = Styles.Colours.Pink.medium
         nav.navigationBar.isTranslucent = false
         nav.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: Styles.Colours.Pink.dark, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
         
@@ -30,6 +36,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         return true
     }
+    
+    
+    func setUpRealm() {
+        print("Delegate setUpRealm")
+        
+        var config = Realm.Configuration.defaultConfiguration
+        config.deleteRealmIfMigrationNeeded = true
+        
+        // Open the Realm with the configuration
+        do {
+            realm = try Realm(configuration: config)
+        } catch {
+            print("Delegate setUpRealm - can't open realm")
+        }
+    }
+    
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

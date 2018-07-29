@@ -10,30 +10,24 @@ import Foundation
 import UIKit
 import TableKit
 import PinLayout
+import RealmSwift
 
 
 class ListController: UIViewController {
-    lazy var lists: [Task] = {
-        let personal = Task("Personal", dueDate: nil, parent: nil)
-        let errands = Task("Errands", dueDate: nil, parent: nil)
-        let work = Task("Work", dueDate: nil, parent: nil)
-        let shopping = Task("Shopping", dueDate: nil, parent: nil)
-        let goals = Task("Goals", dueDate: nil, parent: nil)
-        let projects = Task("Project ideas", dueDate: nil, parent: nil)
-        
-        return [personal, errands, work, shopping, goals, projects]
-    }()
     var tableView = UITableView()
     var tableDirector: TableDirector!
     var newTaskContainer = UIView()
+    var notificationToken: NotificationToken? = nil // used to observe realm changes
+    
     
     init() {
         print("ListController init")
         self.tableDirector = TableDirector(tableView: self.tableView)
-        self.tableDirector.tableView?.allowsSelection = false
         super.init(nibName: nil, bundle: nil)
         self.view.addSubview(self.tableView)
         self.tableView.pin.all()
+        
+        setUpTasks()
     }
     
     
@@ -50,32 +44,83 @@ class ListController: UIViewController {
         self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
         self.tableView.separatorStyle = .none
         self.tableView.register(ListCell.self, forCellReuseIdentifier: ListCell.reuseIdentifier)
-        loadCells()
+        getRealmResults()
     }
     
-    func loadCells() {
+    
+    func getRealmResults() {
+        guard let realm = realm else {
+            print("ListController loadCells - can't access realm")
+            return
+        }
+        let lists = realm.objects(Task.self).filter("parent == nil")
+        self.notificationToken = lists.observe { [weak self] (changes) in
+            self?.tableDirector.clear()
+            self?.loadCells(with: lists)
+        }
+    }
+    
+    
+    func loadCells(with lists: Results<Task>) {
         print("ListController loadCells")
         
         let action = TableRowAction<ListCell>(.click) { (options) in
-            let tasks: [Task] = {
-                let blogList = Task("Blog posts to write", dueDate: nil, parent: nil)
-                let bearTask = Task("How I use Bear", dueDate: nil, parent: blogList)
-                let testingTask = Task("Some of the libraries I've tried for testing apps on iOS and which ones are my favourites", dueDate: Date().addingTimeInterval(60 * 60 * 24 * 4), parent: blogList)
-                let favAppsTask = Task("My favourite apps", dueDate: Date().addingTimeInterval(60 * 60 * 24), parent: blogList)
-                let fastlaneTask = Task("Using Fastlane", dueDate: nil, parent: blogList)
-                let favSwiftTask = Task("My favourite things about using Swift 4 so far", dueDate: Date(), parent:blogList)
-                return [bearTask, testingTask, favAppsTask, fastlaneTask, favSwiftTask]
-            }()
+            print("ListController loadCells action - clicked")
+            guard let realm = realm else {
+                print("ListController loadCells action - can't get realm")
+                return
+            }
+            let tasks = realm.objects(Task.self).filter("parent == %@", options.item)
+            print("ListController loadCells action - tasks: \(tasks.count)")
             let taskController = TaskController(tasks: tasks)
             self.navigationController?.pushViewController(taskController, animated: true)
         }
         
-        let rows = self.lists.map({ TableRow<ListCell>(item: $0, actions: [action]) })
+        let rows: [TableRow<ListCell>] = lists.map({ TableRow<ListCell>(item: $0, actions: [action]) })
         let section = TableSection(rows: rows)
         section.headerHeight = CGFloat.leastNormalMagnitude
         section.footerHeight = CGFloat.leastNormalMagnitude
         tableDirector.append(section: section)
         tableDirector.reload()
+    }
+    
+    
+    func setUpTasks() {
+        
+        let personal = Task()
+        personal.name = "Personal"
+        let newsletter = Task()
+        newsletter.name = "Send newsletter"
+        newsletter.parent = personal
+        let monthlyReview = Task()
+        monthlyReview.name = "Write monthly review"
+        monthlyReview.parent = personal
+        monthlyReview.dueDate = Date().addingTimeInterval(60 * 60 * 24)
+        
+        let blog = Task()
+        blog.name = "Blog posts to write"
+        let bear = Task()
+        bear.name = "How I use Bear and what notes I keep pinned"
+        bear.parent = blog
+        bear.dueDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
+        let testing = Task()
+        testing.name = "Some of the libraries I've tried for testing apps on iOS and which ones are my favourites"
+        testing.parent = blog
+        testing.dueDate = Date().addingTimeInterval(60 * 60 * 24)
+        
+        let tasks = [personal, newsletter, monthlyReview, blog, bear, testing]
+        
+        if let realm = realm {
+            do {
+                try realm.write {
+                    // set update:true so that if any of these already exist they'll be updated
+                    // rather than causing an error because they're not unique
+                    realm.add(tasks, update: true)
+                }
+            } catch {
+                print("ListController setUpTasks - caught error writing to realm: \(error)")
+            }
+        }
     }
 }
 
