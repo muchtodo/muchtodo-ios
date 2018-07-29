@@ -65,18 +65,23 @@ class ListController: UIViewController {
         print("ListController loadCells")
         
         let action = TableRowAction<ListCell>(.click) { (options) in
-            print("ListController loadCells action - clicked")
             guard let realm = realm else {
                 print("ListController loadCells action - can't get realm")
                 return
             }
             let tasks = realm.objects(Task.self).filter("parent == %@", options.item)
-            print("ListController loadCells action - tasks: \(tasks.count)")
-            let taskController = TaskController(tasks: tasks)
+            let taskController = TaskController(tasks: tasks, parent: options.item)
             self.navigationController?.pushViewController(taskController, animated: true)
         }
         
-        let rows: [TableRow<ListCell>] = lists.map({ TableRow<ListCell>(item: $0, actions: [action]) })
+        let l = Array(lists)
+        if let realm = realm {
+            for t in l {
+                let subs = realm.objects(Task.self).filter("parent == %@", t)
+                t.count = subs.count
+            }
+        }
+        let rows: [TableRow<ListCell>] = l.map({ TableRow<ListCell>(item: $0, actions: [action]) })
         let section = TableSection(rows: rows)
         section.headerHeight = CGFloat.leastNormalMagnitude
         section.footerHeight = CGFloat.leastNormalMagnitude
@@ -133,19 +138,30 @@ class ListCell: UITableViewCell, ConfigurableCell {
     }
     
     let name = UILabel()
+    let countLabel = UILabel()
+    
     
     func configure(with task: Task) {
         separatorInset = .zero
         self.name.text = task.name
-        self.name.font = UIFont.boldSystemFont(ofSize: 16.0)
-        self.name.textColor = Styles.Colours.Pink.dark
+        self.name.font = UIFont.boldSystemFont(ofSize: 18.0)
+        self.name.textColor = Styles.Colours.Grey.darkest
         self.contentView.addSubview(self.name)
+        
+        if task.count > 0 {
+            self.countLabel.text = String(task.count)
+        }
+        self.countLabel.font = UIFont.boldSystemFont(ofSize: 16.0)
+        self.countLabel.textColor = Styles.Colours.Pink.red
+        self.contentView.addSubview(self.countLabel)
     }
     
     
     func layout() {
         self.name.sizeToFit()
-        self.name.pin.vCenter()
+        self.name.pin.vCenter().start(16)
+        self.countLabel.sizeToFit()
+        self.countLabel.pin.vCenter().end(16)
         self.contentView.pin.wrapContent(.vertically, padding: 12)
     }
     

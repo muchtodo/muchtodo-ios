@@ -20,12 +20,17 @@ class Task: Object {
     }
     @objc dynamic var completable: Bool = false
     @objc dynamic var complete: Bool = false
-//    @objc dynamic var subtasks: List<Task>? = nil
     @objc dynamic var dueDate: Date?
+    @objc dynamic var count: Int = 0
     
     
     override static func indexedProperties() -> [String] {
         return ["name, dueDate, complete"]
+    }
+    
+    
+    override static func ignoredProperties() -> [String] {
+        return ["count"]
     }
     
     

@@ -45,12 +45,12 @@ class NewTaskView: UIView {
     init(_ parent: Task?) {
         self.parentTask = parent
         super.init(frame: CGRect.zero)
-        self.backgroundColor = Styles.Colours.Pink.medium
+        self.backgroundColor = Styles.Colours.Pink.red
         self.clipsToBounds = true
         self.taskEntry.delegate = taskEntryDelegate()
         self.addSubview(self.taskEntry)
         self.taskEntry.placeholder = "Buy groceries tomorrow #errands"
-        self.taskEntry.backgroundColor = Styles.Colours.Pink.medium
+        self.taskEntry.backgroundColor = Styles.Colours.Pink.red
         self.taskEntry.tintColor = Styles.Colours.Pink.light
         self.taskEntry.font = UIFont.boldSystemFont(ofSize: 18.0)
         self.taskEntry.textColor = Styles.Colours.Pink.light

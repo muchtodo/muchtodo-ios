@@ -27,6 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let nav = UINavigationController(rootViewController: controller)
         nav.navigationBar.prefersLargeTitles = true
         nav.navigationBar.isTranslucent = false
+        nav.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
         nav.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: Styles.Colours.Pink.dark, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
         
         self.window = UIWindow(frame: UIScreen.main.bounds)

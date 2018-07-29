@@ -15,13 +15,15 @@ import RealmSwift
 
 class TaskController: UIViewController {
     let tasks: Results<Task>
+    let parentTask: Task
     var tableView = UITableView()
     var tableDirector: TableDirector!
     var newTaskContainer = UIView()
     
-    init(tasks: Results<Task>) {
+    init(tasks: Results<Task>, parent: Task) {
         print("MainController init")
         self.tasks = tasks
+        self.parentTask = parent
         self.tableDirector = TableDirector(tableView: self.tableView)
         self.tableDirector.tableView?.allowsSelection = false
         super.init(nibName: nil, bundle: nil)
