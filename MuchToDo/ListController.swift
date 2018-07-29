@@ -139,6 +139,7 @@ class ListCell: UITableViewCell, ConfigurableCell {
     
     let name = UILabel()
     let countLabel = UILabel()
+    let countView = UIView()
     
     
     func configure(with task: Task) {
@@ -152,8 +153,12 @@ class ListCell: UITableViewCell, ConfigurableCell {
             self.countLabel.text = String(task.count)
         }
         self.countLabel.font = UIFont.boldSystemFont(ofSize: 16.0)
-        self.countLabel.textColor = Styles.Colours.Pink.red
-        self.contentView.addSubview(self.countLabel)
+        self.countLabel.textColor = UIColor.white
+        self.countView.addSubview(self.countLabel)
+        self.countView.backgroundColor = Styles.Colours.Pink.red
+        self.countView.layer.cornerRadius = 15.0
+        self.contentView.addSubview(self.countView)
+        
     }
     
     
@@ -161,7 +166,8 @@ class ListCell: UITableViewCell, ConfigurableCell {
         self.name.sizeToFit()
         self.name.pin.vCenter().start(16)
         self.countLabel.sizeToFit()
-        self.countLabel.pin.vCenter().end(16)
+        self.countLabel.pin.center()
+        self.countView.pin.wrapContent(padding: PEdgeInsets(top: 6, left: 16, bottom: 6, right: 16)).vCenter().end(16)
         self.contentView.pin.wrapContent(.vertically, padding: 12)
     }
     

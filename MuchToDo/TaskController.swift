@@ -28,6 +28,7 @@ class TaskController: UIViewController {
         self.tableDirector.tableView?.allowsSelection = false
         super.init(nibName: nil, bundle: nil)
         self.view.accessibilityIdentifier = "MainController view"
+        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
         
         self.view.addSubview(self.newTaskContainer)
         let newTask = NewTask(nil)
