@@ -21,7 +21,8 @@ class NewTask: UIViewController {
         self.view.backgroundColor = UIColor.white
         self.taskEntry = NewTaskView(parent)
         self.view.addSubview(self.taskEntry!)
-        self.taskEntry!.pin.height(60).all()
+        self.taskEntry!.pin.height(60)
+        self.view = self.taskEntry!
     }
     
     
@@ -64,7 +65,7 @@ class NewTaskView: UIView {
         self.taskEntry.pin.start(12).vCenter().maxWidth(75%)
         self.taskEntry.becomeFirstResponder()
         
-        let plus = UIImage(named: "add")?.withRenderingMode(.alwaysTemplate)
+        let plus = UIImage(named: "circle_tick")?.withRenderingMode(.alwaysTemplate)
         let add = UIButton()
         add.setBackgroundImage(plus, for: .normal)
         add.tintColor = Styles.Colours.Pink.light

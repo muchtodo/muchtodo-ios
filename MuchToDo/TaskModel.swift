@@ -16,12 +16,14 @@ class Task: Object {
     @objc dynamic var parent: Task? = nil {
         didSet {
             self.completable = true
+            self.iconName = nil
         }
     }
     @objc dynamic var completable: Bool = false
     @objc dynamic var complete: Bool = false
     @objc dynamic var dueDate: Date?
     @objc dynamic var count: Int = 0
+    @objc dynamic var iconName: String? = "list"
     
     
     override static func indexedProperties() -> [String] {

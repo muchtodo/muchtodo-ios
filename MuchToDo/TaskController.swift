@@ -15,31 +15,27 @@ import RealmSwift
 
 class TaskController: UIViewController {
     let tasks: Results<Task>
-    let parentTask: Task
+    let parentTask: Task?
     var tableView = UITableView()
     var tableDirector: TableDirector!
     var newTaskContainer = UIView()
     
-    init(tasks: Results<Task>, parent: Task) {
+    init(tasks: Results<Task>, parent: Task?) {
         print("MainController init")
         self.tasks = tasks
         self.parentTask = parent
         self.tableDirector = TableDirector(tableView: self.tableView)
         self.tableDirector.tableView?.allowsSelection = false
         super.init(nibName: nil, bundle: nil)
-        self.view.accessibilityIdentifier = "MainController view"
-        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
         
         self.view.addSubview(self.newTaskContainer)
         let newTask = NewTask(nil)
-        newTask.view.accessibilityIdentifier = "newTask view"
         self.addChildViewController(newTask)
         self.newTaskContainer.addSubview(newTask.view)
         newTask.didMove(toParentViewController: self)
         newTask.view.pin.horizontally().top()
         self.newTaskContainer.pin.height(60).horizontally().top()
         self.newTaskContainer.layoutIfNeeded()
-        self.newTaskContainer.accessibilityIdentifier = "newTaskContainer"
 
         self.view.addSubview(self.tableView)
         self.tableView.pin.horizontally().bottom().below(of: self.newTaskContainer).marginTop(20)
@@ -63,6 +59,13 @@ class TaskController: UIViewController {
         self.tableView.separatorStyle = .none
         self.tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
         loadCells()
+    }
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("TaskContr init - nav bar: \(self.navigationController?.navigationBar)")
+        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
     }
     
     

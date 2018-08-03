@@ -23,7 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         setUpRealm()
         
-        let controller = ListController()
+        let controller = MainController()
         let nav = UINavigationController(rootViewController: controller)
         nav.navigationBar.prefersLargeTitles = true
         nav.navigationBar.isTranslucent = false
