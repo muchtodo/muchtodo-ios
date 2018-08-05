@@ -43,7 +43,7 @@ class MainController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.title = "Your lists"
-        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
+        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
         
         self.smartLists.view.layoutIfNeeded()
         let height = self.smartLists.tableView.contentSize.height
@@ -106,9 +106,10 @@ class ListController: UIViewController {
     }
     
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
+        self.navigationController?.navigationBar.tintColor = UIColor.white
     }
     
     

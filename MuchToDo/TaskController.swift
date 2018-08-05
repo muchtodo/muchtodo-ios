@@ -53,7 +53,6 @@ class TaskController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(sender:)), name: .UIKeyboardDidShow, object: nil)
         
         self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
-        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
         
         self.view.backgroundColor = UIColor.white
         self.tableView.separatorStyle = .none
@@ -62,9 +61,15 @@ class TaskController: UIViewController {
     }
     
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
+        self.navigationController?.navigationBar.tintColor = UIColor.white
+    }
+    
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
     }
     
     
