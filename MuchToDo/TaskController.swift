@@ -15,18 +15,17 @@ import RealmSwift
 
 class TaskController: UIViewController {
     let tasks: Results<Task>
-    let parentTask: Task?
     var tableView = UITableView()
     var tableDirector: TableDirector!
     var newTaskContainer = UIView()
     
-    init(tasks: Results<Task>, parent: Task?) {
+    init(tasks: Results<Task>, title: String) {
         print("MainController init")
         self.tasks = tasks
-        self.parentTask = parent
         self.tableDirector = TableDirector(tableView: self.tableView)
         self.tableDirector.tableView?.allowsSelection = false
         super.init(nibName: nil, bundle: nil)
+        self.title = title
         
         self.view.addSubview(self.newTaskContainer)
         let newTask = NewTask(nil)
@@ -53,9 +52,10 @@ class TaskController: UIViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(sender:)), name: .UIKeyboardDidShow, object: nil)
         
-        self.title = "Your tasks"
         self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
+        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
         
+        self.view.backgroundColor = UIColor.white
         self.tableView.separatorStyle = .none
         self.tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
         loadCells()
@@ -64,7 +64,6 @@ class TaskController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print("TaskContr init - nav bar: \(self.navigationController?.navigationBar)")
         self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
     }
     
@@ -134,7 +133,6 @@ class TaskCellView: UIView {
     var dateLabel: UILabel?
     
     init(withTask task: Task, inContentView contentView: UIView) {
-        print("Main Controller init - task: \(task.name)")
         self.task = task
         super.init(frame: CGRect.zero)
         

@@ -15,21 +15,22 @@ import RealmSwift
 
 class MainController: UIViewController {
     
+    let smartLists = SmartListController()
+    let userLists = ListController()
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let smartLists = SmartListController()
-        self.addChildViewController(smartLists)
-        self.view.addSubview(smartLists.view)
-        smartLists.didMove(toParentViewController: self)
+        self.addChildViewController(self.smartLists)
+        self.view.addSubview(self.smartLists.view)
+        self.smartLists.didMove(toParentViewController: self)
         
-        let userLists = ListController()
-        self.addChildViewController(userLists)
-        self.view.addSubview(userLists.view)
-        userLists.didMove(toParentViewController: self)
+        self.addChildViewController(self.userLists)
+        self.view.addSubview(self.userLists.view)
+        self.userLists.didMove(toParentViewController: self)
         
-        smartLists.view.pin.top().horizontally()
-        userLists.view.pin.below(of: smartLists.view).horizontally().bottom()
+        self.smartLists.view.pin.top().horizontally()
         
         self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "add"),
@@ -43,6 +44,12 @@ class MainController: UIViewController {
         super.viewDidAppear(animated)
         self.title = "Your lists"
         self.navigationController?.navigationBar.tintColor = Styles.Colours.Pink.red
+        
+        self.smartLists.view.layoutIfNeeded()
+        let height = self.smartLists.tableView.contentSize.height
+        self.smartLists.view.pin.height(height)
+        self.smartLists.tableView.pin.height(height)
+        self.userLists.view.pin.below(of: smartLists.view).horizontally().bottom()
     }
     
     
@@ -127,7 +134,7 @@ class ListController: UIViewController {
                 return
             }
             let tasks = realm.objects(Task.self).filter("parent == %@", options.item)
-            let taskController = TaskController(tasks: tasks, parent: options.item)
+            let taskController = TaskController(tasks: tasks, title: options.item.name)
             self.navigationController?.pushViewController(taskController, animated: true)
         }
         
@@ -281,6 +288,7 @@ class SmartListController: UIViewController {
     override func viewDidLoad() {
         print("SmartListController VDL")
         super.viewDidLoad()
+        self.tableView.separatorStyle = .none
         self.tableView.register(SmartListCell.self, forCellReuseIdentifier: ListCell.reuseIdentifier)
         let lists = setUpSmartLists()
         getRealmResults(lists: lists)
@@ -316,9 +324,9 @@ class SmartListController: UIViewController {
             case .All:
                 newLists.append(SmartList(name: l.name, iconName: "files", count: realm.objects(Task.self).count, type: .All))
             case .Today:
-                newLists.append(SmartList(name: l.name, iconName: "pin", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, todayEnd]).count, type: .All))
+                newLists.append(SmartList(name: l.name, iconName: "pin", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, todayEnd]).count, type: .Today))
             case .ThisWeek:
-                newLists.append(SmartList(name: l.name, iconName: "calendar", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, weekEnd]).count, type: .All))
+                newLists.append(SmartList(name: l.name, iconName: "calendar", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, weekEnd]).count, type: .ThisWeek))
             }
         }
         self.tableDirector.clear()
@@ -330,11 +338,11 @@ class SmartListController: UIViewController {
         print("ListController loadCells")
         
         let action = TableRowAction<SmartListCell>(.click) { (options) in
+            print("ListCont loadCells action - \(options.item.name)")
             guard let realm = realm else {
                 print("ListController loadCells action - can't get realm")
                 return
             }
-            var tasks: Results<Task>
             let cal = Calendar.autoupdatingCurrent
             let todayStart = cal.startOfDay(for: Date())
             let todayEnd: Date? = {
@@ -345,15 +353,22 @@ class SmartListController: UIViewController {
                 let comps = DateComponents(hour: 11, minute: 59, second: 59, weekday: 1)
                 return cal.nextDate(after: Date(), matching: comps, matchingPolicy: .strict)
             }()
+            
+            var tasks: Results<Task>
+            var title = ""
             switch options.item.type {
             case .All:
                 tasks = realm.objects(Task.self)
+                title = "All tasks"
             case .Today:
                 tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, todayEnd])
+                print("ListCont loadCells - today tasks: \(tasks)")
+                title = "Today"
             case .ThisWeek:
                 tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, weekEnd])
+                title = "This week"
             }
-            let taskController = TaskController(tasks: tasks, parent: nil)
+            let taskController = TaskController(tasks: tasks, title: title)
             self.navigationController?.pushViewController(taskController, animated: true)
         }
         
