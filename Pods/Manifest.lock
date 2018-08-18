@@ -7,6 +7,7 @@ PODS:
     - Realm (= 3.7.4)
   - Reveal-SDK (16)
   - SnapKit (4.0.0)
+  - SwiftyChrono (1.0.2)
   - TableKit (2.6.0)
 
 DEPENDENCIES:
@@ -14,6 +15,7 @@ DEPENDENCIES:
   - RealmSwift
   - Reveal-SDK (~> 16)
   - SnapKit (~> 4.0)
+  - SwiftyChrono
   - TableKit (~> 2.6)
 
 SPEC REPOS:
@@ -23,6 +25,7 @@ SPEC REPOS:
     - RealmSwift
     - Reveal-SDK
     - SnapKit
+    - SwiftyChrono
     - TableKit
 
 SPEC CHECKSUMS:
@@ -31,8 +34,9 @@ SPEC CHECKSUMS:
   RealmSwift: a45861b21c180f5cf0f122144b9759fa8dde3e9e
   Reveal-SDK: ed36bdbb3cbf90b94ae5da0dbcb3c7ae6738c51f
   SnapKit: a42d492c16e80209130a3379f73596c3454b7694
+  SwiftyChrono: 0d8cdf2ad4c23c653935893b92b7d46c7db58a09
   TableKit: 61880e4c13ac0ba396a308fcb1ae48f6dec8b458
 
-PODFILE CHECKSUM: 90685a6df688462e6408225ca93db22a4a2872eb
+PODFILE CHECKSUM: 3e70c01962d355df5b53231f9dec5ede62aab358
 
 COCOAPODS: 1.5.3

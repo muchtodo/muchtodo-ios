@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "75FFDC72E237A7E37679DFE1B49406D9"
+               BlueprintIdentifier = "AEB8902C92C983A3930335B43FD69982"
                BlueprintName = "TableKit"
                ReferencedContainer = "container:Pods.xcodeproj"
                BuildableName = "TableKit.framework">

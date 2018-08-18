@@ -32,9 +32,9 @@ class TaskController: UIViewController {
         self.addChildViewController(newTask)
         self.newTaskContainer.addSubview(newTask.view)
         newTask.didMove(toParentViewController: self)
-        newTask.view.pin.horizontally().top()
         self.newTaskContainer.pin.height(60).horizontally().top()
         self.newTaskContainer.layoutIfNeeded()
+        newTask.view.pin.horizontally().top()
 
         self.view.addSubview(self.tableView)
         self.tableView.pin.horizontally().bottom().below(of: self.newTaskContainer).marginTop(20)
@@ -51,9 +51,6 @@ class TaskController: UIViewController {
         super.viewDidLoad()
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(sender:)), name: .UIKeyboardDidShow, object: nil)
-        
-        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
-        
         self.view.backgroundColor = UIColor.white
         self.tableView.separatorStyle = .none
         self.tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
@@ -63,8 +60,11 @@ class TaskController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
-        self.navigationController?.navigationBar.tintColor = UIColor.white
+//        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
+//        self.navigationController?.navigationBar.tintColor = UIColor.white
+        self.navigationController?.navigationBar.barTintColor = UIColor.white
+        self.navigationController?.navigationBar.tintColor = UIColor.black
+        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.black, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 28.0, weight: UIFont.Weight.heavy), NSAttributedStringKey.kern: 1.2]
     }
     
     
@@ -75,7 +75,26 @@ class TaskController: UIViewController {
     
     func loadCells() {
         print("MainController loadCells")
-        let rows: [TableRow<TaskCell>] = self.tasks.map({ TableRow<TaskCell>(item: $0) })
+        
+        let incomplete = self.tasks.filter { (task) -> Bool in
+            task.complete == false
+        }
+        
+        let delete = UITableViewRowAction(style: .destructive, title: "Delete") { (action, indexPath) in
+            print("ListCont loadCells - deleting: \(incomplete[indexPath.row].name) from \(String(describing: incomplete[indexPath.row].parent))")
+            if let realm = realm {
+                do {
+                    try realm.write {
+                        realm.delete(incomplete[indexPath.row])
+                    }
+                } catch {
+                    print("ListCont loadCells - caught error deleting object in realm: \(error)")
+                }
+            }
+        }
+        delete.backgroundColor = Styles.Colours.Theme.iconTint
+        
+        let rows: [TableRow<TaskCell>] = incomplete.map({ TableRow<TaskCell>(item: $0, editingActions: [delete]) })
         let section = TableSection(rows: rows)
         section.headerHeight = CGFloat.leastNormalMagnitude
         section.footerHeight = CGFloat.leastNormalMagnitude
@@ -133,19 +152,31 @@ class TaskCellView: UIView {
     
     var task: Task?
     
-    var box: UIButton?
+    var box: TaskButton?
     let taskName = UILabel()
     var dateLabel: UILabel?
     
     init(withTask task: Task, inContentView contentView: UIView) {
         self.task = task
         super.init(frame: CGRect.zero)
-        
         if task.completable {
-            self.box = UIButton()
-            self.box!.setImage(UIImage(named: "taskbox")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            
+            let renderer = UIGraphicsImageRenderer(size: CGSize(width: 16, height: 16))
+            let img = renderer.image { ctx in
+                ctx.cgContext.setFillColor(UIColor.clear.cgColor)
+                ctx.cgContext.setStrokeColor(Styles.Colours.Grey.dark.cgColor)
+                ctx.cgContext.setLineWidth(2)
+                
+                let rectangle = CGRect(x: 0, y: 0, width: 16, height: 16)
+                let path = UIBezierPath(roundedRect: rectangle, cornerRadius: 5.0)
+                ctx.cgContext.addPath(path.cgPath)
+                ctx.cgContext.drawPath(using: .fillStroke)
+            }
+            
+            self.box = TaskButton(task: task)
+            self.box!.setImage(img, for: .normal)
             self.box!.tintColor = Styles.Colours.Grey.dark
-            self.box!.addTarget(self, action: #selector(TaskCellView.buttonPressed), for: .touchUpInside)
+            self.box!.addTarget(self, action: #selector(TaskCellView.buttonPressed(sender:)), for: .touchUpInside)
             self.addSubview(self.box!)
         }
         
@@ -153,6 +184,7 @@ class TaskCellView: UIView {
         self.taskName.numberOfLines = 0
         self.taskName.lineBreakMode = .byWordWrapping
         taskName.text = task.name
+        taskName.textColor = Styles.Colours.Grey.darkest
         if task.parent == nil {
             taskName.font = UIFont.boldSystemFont(ofSize: 18.0)
         }
@@ -187,8 +219,8 @@ class TaskCellView: UIView {
         self.pin.wrapContent(.vertically, padding: 12).horizontally()
 //        print("MainController self: \(self.frame), box: \(self.box?.frame) name: \(self.taskName.frame) date: \(self.dateLabel?.frame)")
         if let box = self.box {
-            box.pin.size(13).start(12).top()
-            self.taskName.pin.after(of: self.box!, aligned: .top).marginStart(12).width(60%).sizeToFit(.width)
+            box.pin.size(16).start(12).before(of: self.taskName, aligned: .center).marginEnd(12)
+            self.taskName.pin.top().width(60%).sizeToFit(.width).after(of: box).marginStart(12)
         } else {
             self.taskName.pin.start(8).top().width(60%).sizeToFit(.width)
         }
@@ -203,15 +235,39 @@ class TaskCellView: UIView {
     }
     
     
-    @objc func buttonPressed() {
-        print("button pressed")
+    @objc func buttonPressed(sender: TaskButton) {
+        print("TaskCell buttonPressed - for task: \(sender.task.name)")
+        if let realm = realm {
+            do {
+                try realm.write {
+                    sender.task.complete = true
+                }
+            } catch {
+                print("TaskCell buttonPressed - error updating completed for task: \(sender.task.name)")
+            }
+        }
     }
     
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
+
+
+class TaskButton: UIButton {
     
+    let task: Task
+    
+    init(task: Task) {
+        self.task = task
+        super.init(frame: .zero)
+    }
+    
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 

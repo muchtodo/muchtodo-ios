@@ -32,7 +32,7 @@ class MainController: UIViewController {
         
         self.smartLists.view.pin.top().horizontally()
         
-        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
+//        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 28.0)]
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "add"),
                                                                  style: .done,
                                                                  target: self,
@@ -42,8 +42,29 @@ class MainController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.title = "Your lists"
-        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
+        
+        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 28.0, weight: UIFont.Weight.heavy), NSAttributedStringKey.kern: 1.2]
+        self.navigationController?.navigationBar.tintColor = UIColor.white
+        self.navigationItem.title = "Your lists"
+        if let navController = self.navigationController {
+            navController.navigationBar.isTranslucent = false
+            let gradient = CAGradientLayer()
+            gradient.frame = self.view.bounds
+            gradient.colors = [Styles.Colours.Theme.navBarDarkest.cgColor, Styles.Colours.Theme.navBarLightest.cgColor]
+            gradient.startPoint = CGPoint(x: 0, y: 0)
+            gradient.endPoint = CGPoint(x: 1, y: 1)
+            var img: UIImage? = nil
+            UIGraphicsBeginImageContext(gradient.frame.size)
+            if let context = UIGraphicsGetCurrentContext() {
+                gradient.render(in: context)
+                img = UIGraphicsGetImageFromCurrentImageContext()
+            }
+            UIGraphicsEndImageContext()
+            if let img = img {
+                navController.navigationBar.barTintColor = UIColor(patternImage: img)
+                navController.navigationBar.setNeedsLayout()
+            }
+        }
         
         self.smartLists.view.layoutIfNeeded()
         let height = self.smartLists.tableView.contentSize.height
@@ -63,6 +84,12 @@ class MainController: UIViewController {
         bg.pin.all()
         
         let newTask = NewTask(nil)
+        newTask.onFinished = { newTask in
+            newTask.view.removeFromSuperview()
+            newTask.willMove(toParentViewController: nil)
+            newTask.removeFromParentViewController()
+            bg.removeFromSuperview()
+        }
         self.addChildViewController(newTask)
         self.view.addSubview(newTask.view)
         newTask.didMove(toParentViewController: self)
@@ -108,8 +135,8 @@ class ListController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
-        self.navigationController?.navigationBar.tintColor = UIColor.white
+//        self.navigationController?.navigationBar.barTintColor = Styles.Colours.Pink.red
+//        self.navigationController?.navigationBar.tintColor = UIColor.white
     }
     
     
@@ -139,13 +166,17 @@ class ListController: UIViewController {
             self.navigationController?.pushViewController(taskController, animated: true)
         }
         
-        let l = Array(lists)
+        var l = Array(lists)
         if let realm = realm {
             for t in l {
+                if t.name == "Inbox" {
+                    l.remove(at: l.index(of: t)!)
+                }
                 let subs = realm.objects(Task.self).filter("parent == %@", t)
                 t.count = subs.count
             }
         }
+        
         let rows: [TableRow<ListCell>] = l.map({ TableRow<ListCell>(item: $0, actions: [action]) })
         let section = TableSection(rows: rows)
         section.headerHeight = CGFloat.leastNormalMagnitude
@@ -157,11 +188,15 @@ class ListController: UIViewController {
     
     func setUpTasks() {
         
+        let inbox = Task()
+        inbox.name = "Inbox"
+        
         let personal = Task()
         personal.name = "Personal"
         let newsletter = Task()
         newsletter.name = "Send newsletter"
         newsletter.parent = personal
+        newsletter.dueDate = Date()
         let monthlyReview = Task()
         monthlyReview.name = "Write monthly review"
         monthlyReview.parent = personal
@@ -209,6 +244,10 @@ class ListCell: UITableViewCell, ConfigurableCell {
     
     
     func configure(with task: Task) {
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = Styles.Colours.Theme.cellSelect
+        self.selectedBackgroundView = backgroundView
+        
         separatorInset = .zero
         self.name.text = task.name
         self.name.font = UIFont.boldSystemFont(ofSize: 18.0)
@@ -218,27 +257,28 @@ class ListCell: UITableViewCell, ConfigurableCell {
         if let imgName = task.iconName {
             self.icon = UIImageView()
             self.icon!.image = UIImage(named: imgName)?.withRenderingMode(.alwaysTemplate)
-            self.icon?.tintColor = Styles.Colours.Pink.red
+            self.icon?.contentMode = .scaleAspectFit
+            self.icon?.tintColor = Styles.Colours.Theme.iconTint
             self.contentView.addSubview(self.icon!)
         }
         
         if task.count > 0 {
             self.countLabel.text = String(task.count)
+            self.countLabel.font = UIFont.boldSystemFont(ofSize: 14.0)
+            self.countLabel.textColor = UIColor.white
+            self.countView.addSubview(self.countLabel)
+            self.countView.backgroundColor = Styles.Colours.Theme.counterBackground
+            self.countView.layer.cornerRadius = 11.0
+            self.contentView.addSubview(self.countView)
         }
-        self.countLabel.font = UIFont.boldSystemFont(ofSize: 14.0)
-        self.countLabel.textColor = UIColor.white
-        self.countView.addSubview(self.countLabel)
-        self.countView.backgroundColor = Styles.Colours.Pink.red
-        self.countView.layer.cornerRadius = 11.0
-        self.contentView.addSubview(self.countView)
         
     }
     
     
     func layout() {
         if let icon = self.icon {
-            icon.pin.start(18).vCenter()
-            icon.sizeToFit()
+            icon.pin.start(18).vCenter().width(22).sizeToFit(.width)
+//            icon.sizeToFit()
             self.name.sizeToFit()
             self.name.pin.after(of: icon, aligned: .center).marginStart(12)
         } else {
@@ -297,10 +337,11 @@ class SmartListController: UIViewController {
     
     
     func setUpSmartLists() -> [SmartList] {
+        let inbox = SmartList(name: "Inbox", iconName: "inbox", count: 0, type: .Inbox)
         let today = SmartList(name: "Today", iconName: "pin", count: 0, type: .Today)
         let week = SmartList(name: "This week", iconName: "calendar", count: 0, type: .ThisWeek)
         let all = SmartList(name: "All tasks", iconName: "files", count: 0, type: .All)
-        return [today, week, all]
+        return [inbox, today, week, all]
     }
     
     
@@ -322,12 +363,19 @@ class SmartListController: UIViewController {
         var newLists = [SmartList]()
         for l in lists {
             switch l.type {
+            case .Inbox:
+                var count = 0
+                let inboxQ = realm.objects(Task.self).filter("name == %@", "Inbox AND complete == false")
+                if inboxQ.count > 0 {
+                    count = inboxQ.count
+                }
+                newLists.append(SmartList(name: l.name, iconName: "inbox", count: count , type: .Inbox))
             case .All:
-                newLists.append(SmartList(name: l.name, iconName: "files", count: realm.objects(Task.self).count, type: .All))
+                newLists.append(SmartList(name: l.name, iconName: "files", count: realm.objects(Task.self).filter("parent != nil AND complete == false").count, type: .All))
             case .Today:
-                newLists.append(SmartList(name: l.name, iconName: "pin", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, todayEnd]).count, type: .Today))
+                newLists.append(SmartList(name: l.name, iconName: "pin", count: realm.objects(Task.self).filter("dueDate BETWEEN %@ AND complete == false", [todayStart, todayEnd]).count, type: .Today))
             case .ThisWeek:
-                newLists.append(SmartList(name: l.name, iconName: "calendar", count: realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, weekEnd]).count, type: .ThisWeek))
+                newLists.append(SmartList(name: l.name, iconName: "calendar", count: realm.objects(Task.self).filter("dueDate BETWEEN %@ AND complete == false", [todayStart, weekEnd]).count, type: .ThisWeek))
             }
         }
         self.tableDirector.clear()
@@ -358,15 +406,20 @@ class SmartListController: UIViewController {
             var tasks: Results<Task>
             var title = ""
             switch options.item.type {
+            case .Inbox:
+                let inboxQ = realm.objects(Task.self).filter("name == %@", "Inbox AND complete == false")
+                guard inboxQ.count > 0 else { return }
+                tasks = realm.objects(Task.self).filter("parent == %@ AND complete == false", inboxQ[0])
+                title = "Inbox"
             case .All:
-                tasks = realm.objects(Task.self)
+                tasks = realm.objects(Task.self).filter("parent != nil AND complete == false")
                 title = "All tasks"
             case .Today:
-                tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, todayEnd])
+                tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@ AND complete == false", [todayStart, todayEnd])
                 print("ListCont loadCells - today tasks: \(tasks)")
                 title = "Today"
             case .ThisWeek:
-                tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@", [todayStart, weekEnd])
+                tasks = realm.objects(Task.self).filter("dueDate BETWEEN %@ AND complete == false", [todayStart, weekEnd])
                 title = "This week"
             }
             let taskController = TaskController(tasks: tasks, title: title)
@@ -385,6 +438,7 @@ class SmartListController: UIViewController {
 
 
 enum SmartListType {
+    case Inbox
     case Today
     case ThisWeek
     case All
@@ -413,6 +467,10 @@ class SmartListCell: UITableViewCell, ConfigurableCell {
     
     
     func configure(with list: SmartList) {
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = Styles.Colours.Theme.cellSelect
+        self.selectedBackgroundView = backgroundView
+        
         separatorInset = .zero
         self.name.text = list.name
         self.name.font = UIFont.boldSystemFont(ofSize: 18.0)
@@ -420,7 +478,7 @@ class SmartListCell: UITableViewCell, ConfigurableCell {
         self.contentView.addSubview(self.name)
         
         icon.image = UIImage(named: list.iconName)?.withRenderingMode(.alwaysTemplate)
-        icon.tintColor = Styles.Colours.Pink.red
+        icon.tintColor = Styles.Colours.Theme.iconTint
         self.contentView.addSubview(self.icon)
         
         if list.count > 0 {
@@ -430,7 +488,7 @@ class SmartListCell: UITableViewCell, ConfigurableCell {
             self.countLabel!.textColor = UIColor.white
             self.countView = UIView()
             self.countView!.addSubview(self.countLabel!)
-            self.countView!.backgroundColor = Styles.Colours.Pink.red
+            self.countView!.backgroundColor = Styles.Colours.Theme.counterBackground
             self.countView!.layer.cornerRadius = 11.0
             self.contentView.addSubview(self.countView!)
         }

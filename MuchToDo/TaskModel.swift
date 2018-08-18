@@ -15,15 +15,17 @@ class Task: Object {
     @objc dynamic var name: String = ""
     @objc dynamic var parent: Task? = nil {
         didSet {
-            self.completable = true
-            self.iconName = nil
+            if parent != nil {
+                self.completable = true
+                self.iconName = nil
+            }
         }
     }
     @objc dynamic var completable: Bool = false
     @objc dynamic var complete: Bool = false
     @objc dynamic var dueDate: Date?
     @objc dynamic var count: Int = 0
-    @objc dynamic var iconName: String? = "list"
+    @objc dynamic var iconName: String? = nil
     
     
     override static func indexedProperties() -> [String] {

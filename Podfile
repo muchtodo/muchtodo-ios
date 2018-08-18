@@ -9,5 +9,6 @@ target "MuchToDo" do
     pod 'Reveal-SDK', " ~> 16", :configurations => ['Debug'] # debugging views
     pod 'PinLayout'
     pod 'RealmSwift'
+    pod 'SwiftyChrono' # natural language date parsing
 
 end
